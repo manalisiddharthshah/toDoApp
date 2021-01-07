@@ -1,65 +1,70 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import React, { useState, Fragment, useEffect } from "react";
+import AddTaskForm from "./forms/AddTaskForm";
+import EditTaskForm from "./forms/EditTaskForm";
+import TaskTable from "./tables/TaskTable";
+
 
 export default function Home() {
+  // Data
+  const initialFormState = { id: null, title: "", discription: "" };
+  // Setting state
+  const [tasks, setTasks] = useState([]);
+
+  const [currentTask, setCurrentTask] = useState(initialFormState);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("Data", JSON.stringify(tasks));
+  }, [tasks]);
+
+  // CRUD operations
+  const addTask = (task) => {
+    task.id = tasks.length + 1;
+    setTasks([...tasks, task]);
+  };
+
+  const deleteTask = (id) => {
+    setEditing(false);
+    setTasks(tasks.filter((task) => task.id !== id));
+  };
+
+  const updateTask = (id, updatedTask) => {
+    setEditing(false);
+    setTasks(tasks.map((task) => (task.id === id ? updatedTask : task)));
+  };
+
+  const editRow = (task) => {
+    setEditing(true);
+    setCurrentTask({ id: task.id, title: task.title, discription: task.discription });
+  };
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+    <div className="container">
+      <h1>To Do App</h1>
+      <div className="flex-row">
+        <div className="flex-large">
+          {editing ? (
+            <Fragment>
+              <h2>Edit Task</h2>
+              <EditTaskForm
+                editing={editing}
+                setEditing={setEditing}
+                currentTask={currentTask}
+                updateTask={updateTask}
+              />
+            </Fragment>
+          ) : (
+              <Fragment>
+                <h2>Add Task</h2>
+                <AddTaskForm addTask={addTask} />
+              </Fragment>
+            )}
         </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
+        <div className="flex-large">
+          <h2>View Tasks</h2>
+          <TaskTable tasks={tasks} editRow={editRow} deleteTask={deleteTask} />
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
